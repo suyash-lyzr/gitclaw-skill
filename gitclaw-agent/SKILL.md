@@ -963,13 +963,37 @@ When creating a new agent, ALWAYS check if any pre-built enterprise skills from 
 
 ## How to install enterprise skills
 
+Three ways to install — pick the best fit:
+
 ```bash
+# Install an entire vertical (all skills for an industry)
+npx skills add open-gitagent/enterprise-skills --vertical <vertical-name>
+
+# Install a specific skill
 npx skills add open-gitagent/enterprise-skills --skill <skill-id>
+
+# Install ALL enterprise skills
+npx skills add open-gitagent/enterprise-skills
 ```
 
-Or copy the SKILL.md directly into the agent's `skills/<skill-id>/SKILL.md`.
+## Available verticals (install by industry)
 
-## Available enterprise skills (43 total)
+When the agent clearly belongs to one industry, use `--vertical` to install all skills for that vertical at once:
+
+| Vertical | Command | Skills |
+|---|---|---|
+| Procurement | `--vertical procurement` | 23 skills (vendor management, invoicing, supplier risk, etc.) |
+| Insurance | `--vertical insurance` | 20 skills (underwriting, claims, actuarial, etc.) |
+| Banking | `--vertical banking` | 20 skills (lending, credit risk, trade finance, etc.) |
+| Healthcare | `--vertical healthcare` | 20 skills (claims processing, medical coding, etc.) |
+| CFO Office | `--vertical cfo-office` | 20 skills (budgeting, financial close, variance, etc.) |
+| HR | `--vertical hr` | 20 skills (onboarding, performance, talent, workforce, etc.) |
+| Sales | `--vertical sales` | 20 skills (lead qualification, forecasting, account planning, etc.) |
+| Marketing | `--vertical marketing` | 20 skills (demand gen, attribution, brand, product marketing, etc.) |
+| Legal & Compliance | `--vertical legal-compliance` | 20 skills (contract review, KYC, regulatory, governance, etc.) |
+| IT & Operations | `--vertical it-operations` | 20 skills (incident management, change management, etc.) |
+
+## Available individual skills (43 published, 203 total)
 
 ### Finance & Accounting
 | Skill ID | Use when the agent needs to... |
@@ -1052,25 +1076,53 @@ Or copy the SKILL.md directly into the agent's `skills/<skill-id>/SKILL.md`.
 
 ## Auto-matching rules
 
-When creating a new agent, follow this process:
+When creating a new agent, follow this decision process:
 
-1. Analyze the agent's purpose/description
-2. Check the table above for matching skills
-3. For each matching skill, run:
-   ```bash
-   npx skills add open-gitagent/enterprise-skills --skill <skill-id>
-   ```
-   Or create the skill folder manually and note it needs to be installed.
-4. Add the installed skills to `agent.yaml` under `skills:`
-5. Tell the user which enterprise skills were added and why
+### Step 1: Does the agent clearly belong to ONE vertical?
+
+If yes → install the entire vertical:
+```bash
+npx skills add open-gitagent/enterprise-skills --vertical <vertical-name>
+```
+
+| If the agent is about... | Install vertical |
+|---|---|
+| Procurement, vendors, suppliers, invoicing | `--vertical procurement` |
+| Insurance, claims, underwriting, policies | `--vertical insurance` |
+| Banking, loans, credit, lending, trade finance | `--vertical banking` |
+| Healthcare, medical, claims processing, coding | `--vertical healthcare` |
+| Finance, budgeting, accounting, CFO, close | `--vertical cfo-office` |
+| HR, hiring, onboarding, performance, workforce | `--vertical hr` |
+| Sales, leads, pipeline, forecasting, accounts | `--vertical sales` |
+| Marketing, demand gen, brand, attribution | `--vertical marketing` |
+| Legal, compliance, contracts, regulatory, KYC | `--vertical legal-compliance` |
+| IT, operations, incidents, change management | `--vertical it-operations` |
+
+### Step 2: Does the agent span multiple verticals?
+
+If yes → install specific skills that match:
+```bash
+npx skills add open-gitagent/enterprise-skills --skill <skill-id>
+```
+
+### Step 3: Is the agent not enterprise-related?
+
+If it's a dev tool, personal agent, or non-enterprise use case → skip enterprise skills entirely. Write custom skills instead.
+
+### After installing, always:
+1. Add installed skills to `agent.yaml` under `skills:`
+2. Tell the user which enterprise skills were added and why
 
 ### Examples
 
-- User says "Create a KYC compliance agent" → auto-add `kyc-aml-compliance`, `regulatory-compliance-monitoring`, `contract-review-analysis`
-- User says "Create an insurance claims agent" → auto-add `claims-adjudication`, `policy-administration`, `subrogation`
-- User says "Create a sales pipeline agent" → auto-add `lead-qualification`, `sales-forecasting`, `competitive-intelligence`, `account-planning`
-- User says "Create an HR onboarding agent" → auto-add `employee-onboarding`, `performance-management`
-- User says "Create an accounts payable agent" → auto-add `invoice-capture-agent`, `two-way-three-way-matching-agent`, `vendor-onboarding-agent`
+- "Create a procurement agent" → `npx skills add open-gitagent/enterprise-skills --vertical procurement` (all 23 procurement skills)
+- "Create an insurance claims agent" → `npx skills add open-gitagent/enterprise-skills --vertical insurance` (all insurance skills)
+- "Create a KYC compliance agent" → install specific: `kyc-aml-compliance`, `regulatory-compliance-monitoring`, `contract-review-analysis`
+- "Create a sales pipeline agent" → `npx skills add open-gitagent/enterprise-skills --vertical sales` (all sales skills)
+- "Create an HR onboarding agent" → `npx skills add open-gitagent/enterprise-skills --vertical hr` (all HR skills)
+- "Create a CFO reporting agent" → `npx skills add open-gitagent/enterprise-skills --vertical cfo-office` (all CFO skills)
+- "Create a DevLog agent" → skip enterprise skills (not enterprise-related)
+- "Create a code review agent" → skip enterprise skills (dev tool)
 
 ---
 
