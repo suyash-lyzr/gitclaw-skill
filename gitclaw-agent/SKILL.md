@@ -182,6 +182,50 @@ my-agent/
 - `skill_learner` — auto-creates skills from complex tasks
 - `task_tracker` — tracks multi-step task progress
 
+## Composio integrations (connect to 500+ external apps)
+
+GitClaw integrates with Composio to connect agents to external tools like Gmail, Slack, Google Calendar, Notion, Jira, GitHub, and 500+ more.
+
+### Setup
+
+1. Get an API key from https://composio.dev
+2. Add to `.env`:
+```
+COMPOSIO_API_KEY=ak_xxx
+```
+3. Connect apps through Composio's auth flow (OAuth)
+4. GitClaw automatically discovers connected tools and makes them available to the agent
+
+### How it works
+
+- Composio tools appear as `composio_<toolkit>_<action>` (e.g., `composio_gmail_SEND_EMAIL`)
+- The agent can use them like any other tool
+- GitClaw's Composio adapter handles auth, tool discovery, and execution
+
+### Example use cases
+
+```bash
+# Agent that sends email summaries
+gitclaw --dir . "Email Rahul a summary of this week's work"
+
+# Agent that creates calendar events
+gitclaw --dir . "Schedule a meeting with Priya tomorrow at 3pm"
+
+# Agent that posts to Slack
+gitclaw --dir . "Post the weekly summary to #engineering channel"
+```
+
+### SOUL.md tip for Composio agents
+
+In SOUL.md, tell the agent which integrations it has:
+```markdown
+# Integrations
+You are connected to Gmail and Slack via Composio.
+- Use Gmail to send emails and read inbox
+- Use Slack to post messages to channels
+Always confirm with the user before sending any external message.
+```
+
 ## Key principles
 
 - Agent = folder of markdown files, not code
