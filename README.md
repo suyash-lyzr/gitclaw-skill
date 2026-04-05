@@ -44,8 +44,14 @@ Just ask your AI assistant in natural language:
 | "Add a weekly summary workflow" | Creates a workflow in `workflows/` |
 | "Add compliance rules for FINRA" | Configures compliance in `agent.yaml` |
 | "Set up a cron job to run my agent daily" | Creates a schedule in `schedules/` |
+| "Create a KYC compliance agent" | Auto-matches and installs enterprise skills (kyc-aml-compliance, regulatory-compliance-monitoring, etc.) |
+| "Build an insurance claims agent" | Auto-adds claims-adjudication, policy-administration, subrogation skills |
 
 No need to remember commands or file formats — the skill handles it.
+
+### Enterprise Skills Auto-Matching
+
+When you create an agent, the skill automatically checks against **43 pre-built enterprise skills** from [open-gitagent/enterprise-skills](https://github.com/open-gitagent/enterprise-skills) and installs matching ones. Covers: Finance, Banking, Insurance, Healthcare, Legal, Sales, Marketing, HR, and Procurement.
 
 ## Everything this skill covers
 
