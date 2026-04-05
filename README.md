@@ -5,7 +5,7 @@ A Claude Code skill that teaches Claude how to create, configure, and run AI age
 ## Install
 
 ```bash
-npx skills add <your-github-username>/gitclaw-skill --skill gitclaw-agent
+npx skills add suyash-lyzr/gitclaw-skill --skill gitclaw-agent
 ```
 
 ## What it does
