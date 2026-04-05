@@ -957,6 +957,123 @@ gitagent lyzr run --prompt "msg"   # clone + create + chat
 
 ---
 
+# PART 19: ENTERPRISE SKILLS (AUTO-MATCHING)
+
+When creating a new agent, ALWAYS check if any pre-built enterprise skills from `open-gitagent/enterprise-skills` match the agent's purpose. If they do, install them automatically into the agent's `skills/` folder.
+
+## How to install enterprise skills
+
+```bash
+npx skills add open-gitagent/enterprise-skills --skill <skill-id>
+```
+
+Or copy the SKILL.md directly into the agent's `skills/<skill-id>/SKILL.md`.
+
+## Available enterprise skills (43 total)
+
+### Finance & Accounting
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `budgeting-forecasting` | Create budgets, rolling forecasts, scenario planning |
+| `financial-close-process` | Manage month-end/year-end close, reconciliations, journal entries |
+| `variance-analysis` | Compare actuals vs budgets, identify performance gaps |
+| `tax-compliance` | Handle income tax, sales tax, transfer pricing, multi-jurisdiction filing |
+| `board-reporting` | Prepare board packages, KPI dashboards, governance reporting |
+
+### Banking & Lending
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `commercial-loan-underwriting` | Analyze financials, model cash flow, evaluate collateral, structure credit |
+| `credit-risk-assessment` | Evaluate default probability under Basel III, CECL, fair lending |
+| `mortgage-processing` | Process residential mortgage applications, documentation, closing |
+| `trade-finance` | Handle letters of credit, documentary collections, supply chain financing |
+
+### Insurance
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `actuarial-analysis` | Loss reserving, rate making, experience rating, predictive modeling |
+| `claims-adjudication` | Investigate claims, analyze coverage, determine liability, settle |
+| `cyber-insurance-underwriting` | Assess cyber risk, evaluate security posture, structure coverage |
+| `insurance-underwriting-commercial-property` | Evaluate commercial property risk, occupancy, loss history, pricing |
+| `personal-lines-underwriting` | Underwrite homeowners, auto, umbrella policies |
+| `policy-administration` | Manage policy lifecycle — issuance, endorsements, renewals, cancellations |
+| `subrogation` | Manage recovery, demand preparation, negotiation, arbitration |
+
+### Healthcare
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `healthcare-claims-processing` | Process medical claims, adjudication rules, denial management |
+| `medical-coding-icd10-cpt` | ICD-10 diagnosis coding, CPT procedure coding, compliance |
+
+### Legal & Compliance
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `contract-review-analysis` | Review contracts, identify risks, prepare markups, recommend changes |
+| `corporate-governance` | Manage board procedures, committee charters, fiduciary duties |
+| `intellectual-property-management` | Manage patents, trademarks, trade secrets, licensing |
+| `kyc-aml-compliance` | Customer due diligence, transaction monitoring, SAR filing |
+| `regulatory-compliance-monitoring` | Track regulatory changes, gap analysis, compliance reporting |
+
+### Sales
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `account-planning` | Stakeholder mapping, opportunity identification, competitive positioning |
+| `competitive-intelligence` | Collect and analyze competitor intelligence, improve win rates |
+| `lead-qualification` | Qualify leads using BANT, MEDDIC, CHAMP frameworks |
+| `sales-forecasting` | Predict revenue from pipeline data, historical performance, market signals |
+
+### Marketing
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `brand-management` | Brand architecture, guidelines, equity measurement, crisis response |
+| `demand-generation` | Inbound/outbound programs, lead nurturing, funnel optimization |
+| `marketing-attribution` | Multi-touch attribution modeling (first-touch, last-touch, data-driven) |
+| `product-marketing` | Positioning, messaging, launch playbooks, sales enablement |
+
+### HR
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `employee-onboarding` | Design onboarding programs, pre-boarding, 90-day integration |
+| `performance-management` | Define expectations, measure outputs, provide feedback |
+| `talent-acquisition` | End-to-end recruiting — sourcing, evaluating, converting candidates |
+| `workforce-planning` | Scenario modeling, skills gap analysis, succession planning |
+
+### Procurement & Vendor Management
+| Skill ID | Use when the agent needs to... |
+|---|---|
+| `invoice-capture-agent` | OCR extraction from invoices, validation, ERP integration |
+| `performance-review-agent` | Track vendor KPIs, SLA compliance, quality metrics |
+| `qualification-scoring-agent` | Score vendor capabilities, financial health, references |
+| `supplier-communication-agent` | Manage vendor communications, escalation workflows |
+| `supplier-risk-agent` | Monitor vendor financial stability, geopolitical risk, ESG |
+| `two-way-three-way-matching-agent` | Match invoices against POs and receipts, exception routing |
+| `vendor-discovery-agent` | Find vendors by requirements, capability matching, market intelligence |
+| `vendor-onboarding-agent` | Automate supplier registration, compliance verification |
+
+## Auto-matching rules
+
+When creating a new agent, follow this process:
+
+1. Analyze the agent's purpose/description
+2. Check the table above for matching skills
+3. For each matching skill, run:
+   ```bash
+   npx skills add open-gitagent/enterprise-skills --skill <skill-id>
+   ```
+   Or create the skill folder manually and note it needs to be installed.
+4. Add the installed skills to `agent.yaml` under `skills:`
+5. Tell the user which enterprise skills were added and why
+
+### Examples
+
+- User says "Create a KYC compliance agent" → auto-add `kyc-aml-compliance`, `regulatory-compliance-monitoring`, `contract-review-analysis`
+- User says "Create an insurance claims agent" → auto-add `claims-adjudication`, `policy-administration`, `subrogation`
+- User says "Create a sales pipeline agent" → auto-add `lead-qualification`, `sales-forecasting`, `competitive-intelligence`, `account-planning`
+- User says "Create an HR onboarding agent" → auto-add `employee-onboarding`, `performance-management`
+- User says "Create an accounts payable agent" → auto-add `invoice-capture-agent`, `two-way-three-way-matching-agent`, `vendor-onboarding-agent`
+
+---
+
 # KEY PRINCIPLES
 
 - Agent = folder of markdown files, not code
