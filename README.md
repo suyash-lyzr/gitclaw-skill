@@ -78,11 +78,10 @@ When you create an agent, the skill automatically checks against **43 pre-built 
 
 ### Advanced Features
 - **Workflows** — multi-step YAML playbooks with dependency DAGs and approval gates
-- **Hooks** — lifecycle control (session start, pre/post tool use, errors) via scripts or SDK
+- **Hooks** — lifecycle control (session start, pre-tool use, post-response, errors) via scripts or SDK
 - **Sub-agents** — nested agents with delegation config
-- **Plugins** — extend agents with tools, hooks, skills, and prompt content
+- **Plugins** — extend agents with tools, hooks, skills, and prompt content (full CLI: install/list/enable/disable/remove)
 - **Schedules** — cron-based recurring agent execution
-- **Voice mode** — browser UI with OpenAI Realtime and Gemini Live audio
 - **Sandbox** — E2B cloud VMs or NVIDIA OpenShell (Docker + Landlock)
 - **Sessions** — git branch-based sessions with auto-commit and resume
 
@@ -96,11 +95,11 @@ When you create an agent, the skill automatically checks against **43 pre-built 
 - Data governance (PII handling, classification)
 
 ### Portability
-- Export to 14 formats (Claude Code, Cursor, OpenAI, CrewAI, Lyzr, GitHub, Copilot, Codex, Gemini, OpenClaw, OpenCode, Nanobot, Kiro, system-prompt)
-- Import from 3 sources (Claude Code, Cursor, CrewAI)
+- Export to 12 formats (Claude Code, Cursor, OpenAI, CrewAI, Lyzr, GitHub, Git, Gemini, OpenClaw, OpenCode, Nanobot, system-prompt)
+- Import from 4 sources (Claude Code, Cursor, CrewAI, OpenCode)
 - Agent inheritance and dependencies
 - Environment-specific configs (dev, staging, production)
-- 6+ model providers (OpenAI, Anthropic, Google, Groq, Mistral, local via Ollama)
+- 7+ model providers (OpenAI, Anthropic, Google, Groq, Mistral, xAI, local via Ollama)
 
 ## Example
 

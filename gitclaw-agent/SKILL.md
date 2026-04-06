@@ -17,8 +17,12 @@ You help the user create and manage AI agents using the GitAgent specification a
 ## Prerequisites
 
 ```bash
+# Option 1: npm
 npm install -g gitclaw                      # runtime engine
 npm install -g @open-gitagent/gitagent      # spec CLI (validate/export/import)
+
+# Option 2: one-command bash installer
+bash <(curl -fsSL "https://raw.githubusercontent.com/open-gitagent/gitclaw/main/install.sh?$(date +%s)")
 ```
 
 ---
@@ -233,14 +237,13 @@ Or via skills.sh:
 npx skills add open-gitagent/enterprise-skills --skill contract-review-analysis
 ```
 
-## Self-evolving skills (skill_learner)
+## Invoking skills at runtime
 
-GitClaw has a built-in `skill_learner` tool that auto-creates skills from complex tasks:
-- After completing a task, it evaluates: multi-step? non-trivial? novel? generalizable?
-- Needs all 4 checks to pass
-- Creates `skills/<name>/SKILL.md` and git commits it
-- Tracks confidence (0.0-1.0) with reinforcement learning — success increases, failure penalizes 2x
-- Skills flagged when confidence drops below 0.4
+Use the `/skill:` prefix to invoke a skill directly in a GitClaw session:
+```bash
+/skill:code-review Review the auth module
+/skill:bug-triage Investigate the crash in payments
+```
 
 ---
 
@@ -249,12 +252,9 @@ GitClaw has a built-in `skill_learner` tool that auto-creates skills from comple
 ## Built-in GitClaw tools
 
 - `cli` — execute shell commands
-- `read` — read files
+- `read` — read files with pagination
 - `write` — write/create files
 - `memory` — load/save git-committed memory
-- `skill_learner` — auto-creates skills from complex tasks
-- `task_tracker` — tracks multi-step task progress
-- `capture_photo` — capture screenshots (voice mode)
 
 ## Custom declarative tools
 
@@ -333,9 +333,6 @@ gitclaw --dir ./my-agent --sandbox "message"
 
 # Use environment config
 gitclaw --dir ./my-agent --env production "message"
-
-# Voice mode (opens browser UI)
-gitclaw --dir ./my-agent --voice
 ```
 
 ## GitAgent run (auto-detects adapter)
@@ -358,7 +355,10 @@ const q = query({
   dir: "./my-agent",
   model: "anthropic:claude-sonnet-4-6",
   maxTurns: 30,
+  systemPrompt: "Override the full system prompt",    // optional
+  systemPromptSuffix: "Append to system prompt",      // optional
   constraints: { temperature: 0.7, maxTokens: 4096 },
+  abortController: new AbortController(),             // for cancellation
   hooks: { /* see hooks section */ },
 });
 
@@ -384,7 +384,7 @@ q.costs();                 // get token/cost tracking
 | Type | Description | Key Fields |
 |---|---|---|
 | `delta` | Streaming text chunk | `deltaType` (text/thinking), `content` |
-| `assistant` | Complete LLM response | `content`, `model`, `provider`, `usage`, `thinking` |
+| `assistant` | Complete LLM response | `content`, `model`, `provider`, `usage`, `thinking`, `stopReason` |
 | `tool_use` | Tool invocation | `toolName`, `args`, `toolCallId` |
 | `tool_result` | Tool output | `content`, `isError`, `toolCallId` |
 | `system` | Lifecycle events | `subtype` (session_start/end, hook_blocked, error) |
@@ -472,23 +472,14 @@ pre_tool_use:
     description: "Block dangerous commands"
     fail_open: false          # halt on failure
 
-post_tool_failure:
-  - script: hooks/scripts/on-fail.sh
-
 post_response:
   - script: hooks/scripts/log.sh
-
-pre_query:
-  - script: hooks/scripts/pre-query.sh
-
-file_changed:
-  - script: hooks/scripts/on-change.sh
 
 on_error:
   - script: hooks/scripts/on-error.sh
 ```
 
-Hook scripts receive JSON via stdin, return `{ action: "allow" | "block" | "modify", reason?, args? }`.
+Hook scripts receive JSON via stdin, return `{ "action": "allow" }`, `{ "action": "block", "reason": "..." }`, or `{ "action": "modify", "args": {...} }`.
 
 ### SDK programmatic hooks
 
@@ -501,10 +492,7 @@ query({
         return { action: "block", reason: "Destructive command blocked" };
       return { action: "allow" };
     },
-    postToolFailure: async (ctx) => { /* handle */ },
     postResponse: async (ctx) => { /* log response */ },
-    preQuery: async (ctx) => { /* pre-process */ },
-    fileChanged: async (ctx) => { /* react to changes */ },
     onError: async (ctx) => { /* handle errors */ },
   },
 })
@@ -624,6 +612,8 @@ compliance/
 └── validation-schedule.yaml
 ```
 
+Audit logs are written to `.gitagent/audit.jsonl` (structured JSON, one entry per line).
+
 ## Commands
 
 ```bash
@@ -679,6 +669,17 @@ agents:
 
 Plugins extend agents with tools, hooks, skills, and prompt content.
 
+## Plugin CLI
+
+```bash
+gitclaw plugin install https://github.com/org/my-plugin.git
+gitclaw plugin list
+gitclaw plugin enable my-plugin
+gitclaw plugin disable my-plugin
+gitclaw plugin remove my-plugin
+gitclaw plugin init my-plugin       # scaffold a new plugin
+```
+
 ## Plugin locations
 
 1. `<agent>/plugins/<name>/` (local)
@@ -717,6 +718,18 @@ plugins:
     config:
       api_key: "${MY_PLUGIN_KEY}"
 ```
+
+## Programmatic plugin API (entry: `index.ts`)
+
+Methods available inside the plugin entry point:
+- `registerTool(tool)` — add a custom tool
+- `registerHook(event, handler)` — add a lifecycle hook
+- `addPrompt(text)` — inject content into system prompt
+- `registerMemoryLayer(layer)` — add a custom memory layer
+- `logger.info/warn/error(msg)` — structured logging
+- `pluginId` — the plugin's ID string
+- `pluginDir` — absolute path to the plugin folder
+- `config` — resolved config values (from `plugin.yaml` + agent.yaml overrides)
 
 ---
 
@@ -781,25 +794,7 @@ Auto-reply patterns for specific contacts/platforms:
 
 ---
 
-# PART 11: VOICE MODE
-
-```bash
-gitclaw --dir ./my-agent --voice
-```
-
-Opens browser UI at http://localhost:3333 with:
-- **OpenAI Realtime** — bidirectional audio streaming, VAD, Whisper transcription
-- **Gemini Live** — audio with resampling, default voice "Aoede"
-- Video/camera/screen capture support
-- File upload handling
-- Mood tracking (`memory/mood.md`)
-- Photo capture on celebratory language
-- Session journaling
-- System vitals monitoring
-
----
-
-# PART 12: SCHEDULES (Cron Jobs)
+# PART 11: SCHEDULES (Cron Jobs)
 
 Define in `schedules/<name>.yaml`:
 
@@ -824,7 +819,7 @@ Results logged to `.gitagent/schedule-logs/`.
 
 ---
 
-# PART 13: SESSIONS & SANDBOX
+# PART 12: SESSIONS & SANDBOX
 
 ## Sessions
 
@@ -847,7 +842,7 @@ gitclaw --dir ./my-agent --sandbox "message"
 
 ---
 
-# PART 14: ENVIRONMENTS & INHERITANCE
+# PART 13: ENVIRONMENTS & INHERITANCE
 
 ## Environment configs
 
@@ -881,9 +876,9 @@ gitagent install    # resolves semver, clones dependencies to mount paths
 
 ---
 
-# PART 15: EXPORTING & IMPORTING
+# PART 14: EXPORTING & IMPORTING
 
-## Export formats (14 targets)
+## Export formats (12 targets)
 
 ```bash
 gitagent export --format <format> --output <file>
@@ -898,13 +893,11 @@ gitagent export --format <format> --output <file>
 | `crewai` | YAML config with role/goal/backstory |
 | `lyzr` | JSON payload for Lyzr Studio |
 | `github` | GitHub Models API payload |
-| `copilot` | GitHub Copilot format |
-| `codex` | OpenAI Codex format |
-| `gemini` | Google Gemini format |
+| `git` | Git-native execution format |
+| `gemini` | Google Gemini CLI (`GEMINI.md` + `settings.json`) |
 | `openclaw` | OpenClaw workspace |
-| `opencode` | OpenCode format |
-| `nanobot` | config.json + system-prompt.md |
-| `kiro` | Kiro format |
+| `opencode` | OpenCode instructions + config |
+| `nanobot` | `config.json` + `system-prompt.md` |
 
 ## Import from existing tools
 
@@ -912,11 +905,12 @@ gitagent export --format <format> --output <file>
 gitagent import --from claude <path>     # imports CLAUDE.md + .claude/skills/
 gitagent import --from cursor <path>     # imports .cursorrules or AGENTS.md
 gitagent import --from crewai <path>     # imports CrewAI YAML config
+gitagent import --from opencode <path>   # imports OpenCode config
 ```
 
 ---
 
-# PART 16: VALIDATION & OTHER COMMANDS
+# PART 15: VALIDATION & OTHER COMMANDS
 
 ```bash
 gitagent validate                  # validate spec structure
@@ -933,19 +927,20 @@ gitagent lyzr run --prompt "msg"   # clone + create + chat
 
 ---
 
-# PART 17: AVAILABLE MODELS
+# PART 16: AVAILABLE MODELS
 
 - `openai:gpt-4o-mini`, `openai:gpt-4o`, `openai:o3`
 - `anthropic:claude-sonnet-4-6`, `anthropic:claude-opus-4-6`
 - `google:gemini-pro`, `google:gemini-2.0-flash`
 - `groq:llama-3.3-70b-versatile`
 - `mistral:mistral-large-latest`
+- `xai` models (via pi-ai multi-model layer)
 - Custom endpoints via `@baseUrl` syntax or env vars
-- Local models via Ollama (through OpenShell GPU passthrough)
+- Local models via Ollama
 
 ---
 
-# PART 18: GIT-NATIVE PATTERNS
+# PART 17: GIT-NATIVE PATTERNS
 
 - **Agent versioning** — git tags = agent versions (semver)
 - **Branch-based deployment** — dev → staging → main
@@ -957,7 +952,7 @@ gitagent lyzr run --prompt "msg"   # clone + create + chat
 
 ---
 
-# PART 19: ENTERPRISE SKILLS (AUTO-MATCHING)
+# PART 18: ENTERPRISE SKILLS (AUTO-MATCHING)
 
 When creating a new agent, ALWAYS check if any pre-built enterprise skills from `open-gitagent/enterprise-skills` match the agent's purpose. If they do, install them automatically into the agent's `skills/` folder.
 
